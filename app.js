@@ -50,20 +50,20 @@ var GameScene = new Phaser.Class({
         this.anims.create({
             key: 'left',
             frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 3 }),
-            frameRate: 10,
+            frameRate: 20,
             repeat: -1
         });
 
         this.anims.create({
             key: 'turn',
             frames: [ { key: 'dude', frame: 4 } ],
-            frameRate: 20
+            frameRate: 40
         });
 
         this.anims.create({
             key: 'right',
             frames: this.anims.generateFrameNumbers('dude', { start: 5, end: 8 }),
-            frameRate: 10,
+            frameRate: 20,
             repeat: -1
         });
 
@@ -71,12 +71,12 @@ var GameScene = new Phaser.Class({
 
         var stars = this.physics.add.group({
             key: 'star',
-            repeat: 5,
+            repeat: 1,
             allowGravity: true,
 
             setXY: { x: 12, y: 100, stepX: Phaser.Math.FloatBetween(0.4, 0.8) * 100 }
         });
-        this.starCount = 6;
+        this.starCount = 2;
         stars.children.iterate(function (child) {
             child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
 
@@ -108,7 +108,13 @@ var GameScene = new Phaser.Class({
             }
 
         }, this);
+        this.input.on('pointermove', function (pointer) {
 
+            this.player.x = Phaser.Math.Clamp(pointer.x, 0, 800); //second 1 params are boundries
+
+
+
+        }, this);
         this.scoreText.setText('v15');
 
         var FKey = this.input.keyboard.addKey('F');
@@ -133,7 +139,7 @@ var GameScene = new Phaser.Class({
     createNewItem(){
         ++this.totalStars;
         let { width, height } = this.sys.game.canvas;
-        let offset = Phaser.Math.FloatBetween(1.1, 4);
+        let offset = Phaser.Math.FloatBetween(0, 4);
         let x = width / offset;
         this.star = this.physics.add.sprite(x,100, 'star');
         // {
@@ -141,11 +147,18 @@ var GameScene = new Phaser.Class({
         //     setXY: { x, y: 100},
         //     accelerationX: 150, //makes it go left or right automatically
         // }
+        let accel = 0;
+        if(x < (width / 2)){
+            //star spawn on the
+            accel = 25;
+        }else{
+            accel = -25;
+        }
         let vel = -50 * this.totalStars;
-
-        this.star.setAccelerationX(150); 
+        let multiplier = this.totalStars > 10? this.totalStars : 1;
+        this.star.setAccelerationX(accel * multiplier); 
         this.star.setGravityY(50 * this.totalStars);
-        this.star.setVelocityY(-50); //provides upward motion to simulate the flipping of the burger
+        this.star.setVelocityY(-250); //provides upward motion to simulate the flipping of the burger
         this.star.setFrictionY(10);
         this.star.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
         // star.setCollideWorldBounds(true);
@@ -166,14 +179,14 @@ var GameScene = new Phaser.Class({
         // });
         
         //this will need to have platforms 
-        this.physics.add.collider(this.star, this.platforms);
+        // this.physics.add.collider(this.star, this.platforms);
         this.physics.add.overlap(this.player, this.star, this.collectStar, null, this);
     },
     update: function ()
     {
         if(this.star){
             let { width, height } = this.sys.game.canvas;
-            if(this.star.x > width){
+            if(this.star.x > width || this.star.y > height){
                 this.star.disableBody(true, true);
                 this.createNewItem();
             }
@@ -187,13 +200,13 @@ var GameScene = new Phaser.Class({
 
         if (cursors.left.isDown)
         {
-            player.setVelocityX(-160);
+            player.setVelocityX(-320); //speed of the player sprite
 
             player.anims.play('left', true);
         }
         else if (cursors.right.isDown)
         {
-            player.setVelocityX(160);
+            player.setVelocityX(320);
 
             player.anims.play('right', true);
         }
